@@ -3,7 +3,7 @@
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
 # @Last Modified by:   eswizardry
-# @Last Modified time: 2015-11-11 21:46:57
+# @Last Modified time: 2015-12-06 23:06:54
 """
 KFH PyBot V 0.1
 """
@@ -122,7 +122,7 @@ def getMouseInfo():
         if oldPos != pos:
             oldPos = pos
             print("Mouse Position(x,y): ",pos)
-            #mousePos(pos)
+            #pyautogui.moveTo(pos)
             try:
                 getPosPixel(pos)
             except Exception:
@@ -142,6 +142,11 @@ def resizeD4X():
     #Move and Resize D4x window
     getKFHWindow(True)
 
+def resizeConsoleWindow():
+    cslhwnd = win32gui.FindWindow(None, "pyBot")
+    if cslhwnd:
+        win32gui.MoveWindow(cslhwnd, 860, 530, 500, 230, True)
+
 class KFHPyBot(QMainWindow):
     buffLimit = [3000, 3000, 1000, 1000, 0]
     buffCurrent = [0, 0, 0, 0, 0]
@@ -152,7 +157,7 @@ class KFHPyBot(QMainWindow):
     INT = 3
     AGI = 4
 
-    gold_limit = 20
+    gold_limit = 5
 
     # Stage Enum
     StageX1 = 0
@@ -192,6 +197,9 @@ class KFHPyBot(QMainWindow):
         self.initUI()
         # skipD4XUpdate()
         resizeD4X()
+        resizeConsoleWindow()
+        #self.enteringKFH()
+        self.guirestore((os.getcwd()+ "\\saves\\"+"s142",".ini"))
 
     def resetStat(self):
         self.buffCurrent = [0, 0, 0, 0, 0]
@@ -537,7 +545,7 @@ class KFHPyBot(QMainWindow):
         while keyPress == 0:
             QApplication.processEvents()
             #Exit program when Key press = 'SPACE Bar'
-            keyPress = win32api.GetAsyncKeyState(win32con.VK_SPACE)
+            keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
             # Take screen shot
             im = screenGrab()
@@ -560,33 +568,42 @@ class KFHPyBot(QMainWindow):
             #Conduct brush BUG
             dragAtMid =(550, 243)
             pixel = im.getpixel(dragAtMid)
+
+            xleft, ytop = getKFHWindow()
+            dragAtMid =(xleft+550, ytop+243)
             if pixel == (17, 60, 68):
                 #Up4
                 for i in range(0,4):
-                    mousePos(dragAtMid)
+                    pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, -50, duration=0.1)
 
                 #Down 2, Up 2 for 3 rounds
                 for i in range(0,3):
                     #Down 2
-                    mousePos(dragAtMid)
+                    pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, 50, duration=0.1)
-                    mousePos(dragAtMid)
+                    pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, 50, duration=0.1)
                     #Up 2
-                    mousePos(dragAtMid)
+                    pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, -50, duration=0.1)
-                    mousePos(dragAtMid)
+                    pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, -50, duration=0.1)
                 #Up 1
-                mousePos(dragAtMid)
+                pyautogui.moveTo((dragAtMid))
                 pyautogui.dragRel(0, -50, duration=0.1)
 
                 #Stop when found blue item
-                time.sleep(.5)
-                checkBlueItemColor = (482, 167)
-                pixel = im.getpixel(checkBlueItemColor)
-                if pixel == (159, 159, 159):
+                # time.sleep(0.5)
+                # checkBlueItemPos =(415, 211)
+                # pixel = im.getpixel(checkBlueItemPos)
+                # if pixel == (49, 111, 211):
+                pos = pyautogui.locateOnScreen('rsc\\blueitem-inspect.png')
+                if pos:
+                    print('End : Brush Extraction...')
+                    break
+                else:
+                    print(pos)
                     #Check First
                     checkFirst =(590, 155)
                     invisibleClick(checkFirst)
@@ -594,8 +611,6 @@ class KFHPyBot(QMainWindow):
                     extractItem =(265, 395)
                     invisibleClick(extractItem)
                     time.sleep(1.5)
-                else:
-                    break
 
 
     def legendaryWarriorGuiAtBottomMid(self):
@@ -622,7 +637,7 @@ class KFHPyBot(QMainWindow):
         self.lbl_battleLegendary22 = QLabel(self)
         self.lbl_battleLegendary22.setText('00 / ')
         self.qle_battleLegendary2 = QLineEdit(self)
-        self.qle_battleLegendary2.setText('20')
+        self.qle_battleLegendary2.setText('5')
         self.legendary_hbox3 = QHBoxLayout()
         self.legendary_hbox3.addWidget(self.lbl_battleLegendary21)
         self.legendary_hbox3.addWidget(self.lbl_battleLegendary22)
@@ -637,28 +652,84 @@ class KFHPyBot(QMainWindow):
 
         self.bottommid.setLayout(self.brush_vbox)
 
+    def enteringKFH(self):
+        pos = None
+        while pos == None:
+            pos = pyautogui.locateOnScreen('rsc\\kfh-icon.png')
+        centerPos = pyautogui.center(pos)
+        pyautogui.click(centerPos)
+
+        pos = None
+        while pos == None:
+            pos = pyautogui.locateOnScreen('rsc\\enter-game.png')
+        centerPos = pyautogui.center(pos)
+        pyautogui.click(centerPos)
+
+        pos = None
+        while pos == None:
+            pos = pyautogui.locateOnScreen('rsc\\enter-game2.png')
+        centerPos = pyautogui.center(pos)
+        pyautogui.click(centerPos)
+
+        pos = None
+        while pos == None:
+            pos = pyautogui.locateOnScreen('rsc\\activity-page.png')
+        centerPos = pyautogui.center(pos)
+        pyautogui.click(centerPos)
+
     def legendaryWarrior(self):
         keyPress = 0
         battle_count = 0
         gold_usedTable = [0, 2, 5, 9, 14, 20, 27, 35, 44, 54, 65, 77, 90]
         gold_refreshCount = 0
 
-        while 1:
-            tm = datetime.datetime.now().time()
-            if tm.minute >= 7:
-                break
-
-        print('Done')
-
         while keyPress == 0:
             QApplication.processEvents()
             #Exit program when Key press = 'SPACE Bar'
-            keyPress = win32api.GetAsyncKeyState(win32con.VK_SPACE)
+            keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
+
+            tm = datetime.datetime.now().time()
+            print('Waiting Legendary Battle... : '+str(tm.hour)+':'+str(tm.minute)+':'+str(tm.second), end="\r")
+            time.sleep(1)
+
+            if (tm.hour == 13 or tm.hour == 21 or tm.hour == 22 ) and tm.minute == 0 and tm.second >= 3:
+                # Eliminate Teamviewer popup
+                for i in range (0, 3): #Do 3 times for ensure
+                    pos = pyautogui.locateOnScreen('rsc\\teamviewer-ok.png')
+                    if pos: #if exist click "OK"
+                        centerPos = pyautogui.center(pos)
+                        pyautogui.click(centerPos)
+
+                # pos = None
+                # while pos == None:
+                #     pos = pyautogui.locateOnScreen('rsc\\d4x-backbutton.png')
+                # centerPos = pyautogui.center(pos)
+                # pyautogui.click(centerPos)
+
+                # pos = None
+                # while pos == None:
+                #     pos = pyautogui.locateOnScreen('rsc\\kfh-confirmexit.png')
+                # centerPos = pyautogui.center(pos)
+                # pyautogui.click(centerPos)
+
+                # self.enteringKFH()
+                # time.sleep(1)
+                break
+
+        #To prevent KFH BUG show abmormal screen
+        #Enter battle
+        for x in range(1, 3):
+            enterBattlePos = (30, 240)
+            invisibleClick(enterBattlePos)
+
+        keyPress = 0
+        while keyPress == 0:
+            QApplication.processEvents()
+            #Exit program when Key press = 'SPACE Bar'
+            keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
             #Take screen shot
             im = screenGrab()
-
-            #eliminate team viewer screen
 
             #Continue battle screen
             contBattlePos = (570, 213)
@@ -727,6 +798,14 @@ class KFHPyBot(QMainWindow):
             self.lbl_battleLegendary12.setText(str(battle_count))
             self.lbl_battleLegendary22.setText(str(gold_usedTable[gold_refreshCount]) + ' / ')
 
+            #End
+            endCheckPos =(359, 64)
+            pixel = im.getpixel(endCheckPos)
+            if pixel == (207, 207, 207):
+                tm = datetime.datetime.now().time()
+                print('End : Legendary Battle... @ '+str(tm.hour)+':'+str(tm.minute)+':'+str(tm.second), end="\r")
+                break
+
     def battleOfHeroGuiAtBottomLeft(self):
         self.bottomleft = QFrame(self)
         self.bottomleft.setFrameShape(QFrame.StyledPanel)
@@ -773,7 +852,7 @@ class KFHPyBot(QMainWindow):
         while keyPress == 0:
             QApplication.processEvents()
             #Exit program when Key press = 'SPACE Bar'
-            keyPress = win32api.GetAsyncKeyState(win32con.VK_SPACE)
+            keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
             # Take screen shot
             im = screenGrab()
@@ -1080,7 +1159,7 @@ class KFHPyBot(QMainWindow):
         while keyPress == 0:
             QApplication.processEvents()
             #Exit program when Key press = 'SPACE Bar'
-            keyPress = win32api.GetAsyncKeyState(win32con.VK_SPACE)
+            keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
             # Take screen shot
             im = screenGrab()
@@ -1107,7 +1186,7 @@ class KFHPyBot(QMainWindow):
                 self.qleStage.setText(str(self.stageCurrent))
                 # Update use star
                 useStar = 0
-                for x in range(0,4):
+                for x in range(0, 5):
                     useStar += self.buffCurrent[x]
                 self.qleUseStar.setText(str(useStar))
 
