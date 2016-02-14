@@ -3,7 +3,7 @@
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
 # @Last Modified by:   eswizardry
-# @Last Modified time: 2015-12-06 23:06:54
+# @Last Modified time: 2016-02-14 19:42:23
 """
 KFH PyBot V 0.1
 """
@@ -16,6 +16,8 @@ import win32con
 import win32gui
 import datetime
 import pyautogui
+import pyHook
+import pythoncom
 
 from PIL import ImageGrab
 from PIL import ImageOps
@@ -29,6 +31,9 @@ from PyQt5.QtWidgets import *
 # ------------------
 x_size = 700
 y_size = 500
+mouse_click_pos = 0, 0
+screen_start_x = 150
+screen_start_y = 100
 
 ENEMY_X3 = 0
 ENEMY_X2 = 1
@@ -43,23 +48,27 @@ LI_XUNHUAN    = 4
 # YAO_YUE       = 0
 # YI_DENG       = 0
 
+
 class Enemy:
+
     """docstring for ClassName"""
     x3 = [336996082, 3290520429, 1112749524, 2574921780, 1644016021]
     x2 = [1801463166, 1985337230, 3680636007, 1470262155, 862735749]
 
+
 def getKFHWindow(resize=False):
-    hwnd = win32gui.FindWindow(None, "Droid4X 0.8.5 Beta")
+    hwnd = win32gui.FindWindow(None, "Droid4X 0.9.0 Beta")
     if hwnd:
         if resize:
-            win32gui.MoveWindow(hwnd, 150, 100, x_size, y_size, True)
+            win32gui.MoveWindow(hwnd, screen_start_x, screen_start_y, x_size, y_size, True)
         else:
             xleft, ytop, xright, ybottom = win32gui.GetWindowRect(hwnd)
             return xleft-1, ytop-1
     else:
         w = QWidget()
-        QMessageBox.critical(w, "Error", "No Droid4X 0.8.5 Beta instance is exist.")
+        QMessageBox.critical(w, "Error", "No Droid4X 0.9.0 Beta instance is exist.")
         exit()
+
 
 def imgGrab(x_start, y_start, x_end, y_end):
     xleft, ytop = getKFHWindow()
@@ -67,11 +76,13 @@ def imgGrab(x_start, y_start, x_end, y_end):
     im = ImageGrab.grab(box)
     return im
 
+
 def screenGrab():
     xleft, ytop = getKFHWindow()
     box = (xleft+1, ytop+1, xleft+x_size, ytop+y_size)
     image = ImageGrab.grab(box)
     return image
+
 
 def getEnemy(enemyStage):
     if enemyStage == ENEMY_X3:
@@ -80,8 +91,9 @@ def getEnemy(enemyStage):
         im = ImageOps.grayscale(imgGrab(301, 200, 400, 305))
     enemy = array(im.getcolors())
     enemy = zlib.crc32(enemy)
-    #enemy = enemy.sum()
+    # enemy = enemy.sum()
     return enemy
+
 
 def invisibleClick(cord):
     xleft, ytop = getKFHWindow()
@@ -89,28 +101,31 @@ def invisibleClick(cord):
     pyautogui.click((xleft + cord[0], ytop + cord[1]))
     pyautogui.moveTo(xcur, ycur)
 
+
 def get_cords():
     xleft, ytop = getKFHWindow()
-    x,y = win32api.GetCursorPos()
+    x, y = win32api.GetCursorPos()
     x = x - xleft
     y = y - ytop
-    pos = (x,y)
+    pos = (x, y)
     return pos
+
 
 def getPosPixel(cord):
     im = screenGrab()
 
-    if cord < (600,400):
+    if cord < (600, 400):
         pos = (cord[0], cord[1])
         pixel = im.getpixel(pos)
-        print("Pixel color(R,G,B):  ",pixel)
+        print("Pixel color(R,G,B):  ", pixel)
     else:
-        print("Mouse Position of of Image")
+        print("Mouse position is out of target window")
+
 
 def getMouseInfo():
     keyPress = 0
-    pos = 0,0
-    oldPos = 0,0
+    pos = 0, 0
+    oldPos = 0, 0
     while keyPress == 0:
         keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
         try:
@@ -121,31 +136,35 @@ def getMouseInfo():
             pass
         if oldPos != pos:
             oldPos = pos
-            print("Mouse Position(x,y): ",pos)
-            #pyautogui.moveTo(pos)
+            print("Mouse Position(x,y): ", pos)
+            # pyautogui.moveTo(pos)
             try:
                 getPosPixel(pos)
             except Exception:
                 pass
             else:
                 pass
-            #print pixel
-            #invisibleClick()
+            # print pixel
+            # invisibleClick()
+
 
 def skipD4XUpdate():
-    #Ignore D4XUpdate
-    IgnoreD4XUpdatePos = (505,392)
+    # Ignore D4XUpdate
+    IgnoreD4XUpdatePos = (505, 392)
     time.sleep(.1)
     invisibleClick(IgnoreD4XUpdatePos)
 
+
 def resizeD4X():
-    #Move and Resize D4x window
+    # Move and Resize D4x window
     getKFHWindow(True)
+
 
 def resizeConsoleWindow():
     cslhwnd = win32gui.FindWindow(None, "pyBot")
     if cslhwnd:
         win32gui.MoveWindow(cslhwnd, 860, 530, 500, 230, True)
+
 
 class KFHPyBot(QMainWindow):
     buffLimit = [3000, 3000, 1000, 1000, 0]
@@ -170,27 +189,27 @@ class KFHPyBot(QMainWindow):
     avoidLimitx2 = [0, 0, 0, 0, 0]
 
     # Buff Position
-    getBuff_30_BTNPos =(484,216)
-    getBuff_15_BTNPos =(376,216)
-    getBuff_3_BTNPos =(260,216)
+    getBuff_30_BTNPos = (484, 216)
+    getBuff_15_BTNPos = (376, 216)
+    getBuff_3_BTNPos = (260, 216)
 
-    HP30   =  (210, 75, 143)
-    PWR30  =  (205, 68, 34)
-    PRT30  =  (244, 204, 79)
-    INT30  =  (29, 152, 153)
-    AGI30  =  (18, 168, 51)
+    HP30   = (210, 75, 143)
+    PWR30  = (205, 68, 34)
+    PRT30  = (244, 204, 79)
+    INT30  = (29, 152, 153)
+    AGI30  = (18, 168, 51)
 
-    HP15   =  (216, 92, 158)
-    PWR15  =  (214, 88, 61)
-    PRT15  =  (245, 204, 98)
-    INT15  =  (54, 151, 153)
-    AGI15  =  (49, 166, 74)
+    HP15   = (216, 92, 158)
+    PWR15  = (214, 88, 61)
+    PRT15  = (245, 204, 98)
+    INT15  = (54, 151, 153)
+    AGI15  = (49, 166, 74)
 
-    HP3    =  (221, 85, 156)
-    PWR3   =  (211, 76, 34)
-    PRT3   =  (247, 209, 82)
-    INT3   =  (27, 147, 153)
-    AGI3   =  (21, 164, 53)
+    HP3    = (221, 85, 156)
+    PWR3   = (211, 76, 34)
+    PRT3   = (247, 209, 82)
+    INT3   = (27, 147, 153)
+    AGI3   = (21, 164, 53)
 
     def __init__(self):
         super().__init__()
@@ -198,8 +217,8 @@ class KFHPyBot(QMainWindow):
         # skipD4XUpdate()
         resizeD4X()
         resizeConsoleWindow()
-        #self.enteringKFH()
-        self.guirestore((os.getcwd()+ "\\saves\\"+"s142",".ini"))
+        # self.enteringKFH()
+        self.guirestore((os.getcwd() + "\\saves\\" + "default", ".ini"))
 
     def resetStat(self):
         self.buffCurrent = [0, 0, 0, 0, 0]
@@ -207,15 +226,15 @@ class KFHPyBot(QMainWindow):
         self.updateBuff2GUI()
 
     def showSaveDialog(self):
-        fname = QFileDialog.getSaveFileName(self, 'Save file', os.getcwd()+ "\\saves\\", ".ini")
+        fname = QFileDialog.getSaveFileName(self, 'Save file', os.getcwd() + "\\saves\\", ".ini")
         self.guisave(fname)
 
     def showLoadDialog(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file', os.getcwd()+ "\\saves\\")
+        fname = QFileDialog.getOpenFileName(self, 'Open file', os.getcwd() + "\\saves\\")
         self.guirestore(fname)
 
     def initUI(self):
-        #Tool bar and status bar
+        # Tool bar and status bar
         resizeAction = QAction(QIcon('rsc\\d4x-icon.png'), 'ปรับขนาด D4X', self)
         resizeAction.setShortcut('Ctrl+Z')
         resizeAction.setStatusTip('ปรับขนาดหน้าจอ Droid4X')
@@ -240,6 +259,11 @@ class KFHPyBot(QMainWindow):
         loadAction.setShortcut('Ctrl+L')
         loadAction.setStatusTip('โหลดค่าหอมาร')
         loadAction.triggered.connect(self.showLoadDialog)
+
+        trainingAction = QAction(QIcon('rsc\\training-icon.png'), 'ศิษย์ฝึก', self)
+        trainingAction.setShortcut('Ctrl+A')
+        trainingAction.setStatusTip('ศิษย์ฝึก')
+        trainingAction.triggered.connect(self.training)
 
         brushAction = QAction(QIcon('rsc\\brush-icon.png'), 'ย่อยพู่กัน', self)
         brushAction.setShortcut('Ctrl+B')
@@ -269,11 +293,12 @@ class KFHPyBot(QMainWindow):
         toolbar.addAction(clearStatAction)
         toolbar.addAction(saveAction)
         toolbar.addAction(loadAction)
+        toolbar.addAction(trainingAction)
         toolbar.addAction(brushAction)
         toolbar.addAction(mouseInfoAction)
         toolbar.addAction(exitAction)
 
-        #===========================================================
+        # ===========================================================
 
         # Stage current
         self.lblStage = QLabel(self)
@@ -332,7 +357,7 @@ class KFHPyBot(QMainWindow):
         stage_vbox.addStretch(1)
 
         # Enemy avoiding
-        enemy = ['เอี้ยเซียว', 'เจี่ยซุ่น', 'กิมฮ้ง', 'แป๊ะม่อ', 'ลี้คิมฮวง'];
+        enemy = ['เอี้ยเซียว', 'เจี่ยซุ่น', 'กิมฮ้ง', 'แป๊ะม่อ', 'ลี้คิมฮวง']
         length = len(enemy)
         self.enemy_cbx3 = []
         self.enemy_cbx2 = []
@@ -350,7 +375,7 @@ class KFHPyBot(QMainWindow):
         self.avoid_hbox.addWidget(self.avoid_lbl2)
         self.avoid_hbox.addStretch(1)
 
-        #enemy_cbx3
+        # enemy_cbx3
         for i in enemy:
             self.enemy_qlex3.append(QLineEdit(self))
             self.enemy_cbx3.append(QCheckBox(' ', self))
@@ -364,10 +389,10 @@ class KFHPyBot(QMainWindow):
             self.inner_enemy_hbox[i].addWidget(self.enemy_qlex2[i])
             self.inner_enemy_hbox[i].addWidget(self.enemy_cbx2[i])
             self.inner_enemy_hbox[i].addStretch()
-            self.enemy_qlex3[i].setFixedSize(35,15)
+            self.enemy_qlex3[i].setFixedSize(35, 15)
             self.enemy_qlex3[i].setText('000')
             self.enemy_qlex3[i].textChanged[str].connect(self.onChanged)
-            self.enemy_qlex2[i].setFixedSize(35,15)
+            self.enemy_qlex2[i].setFixedSize(35, 15)
             self.enemy_qlex2[i].setText('000')
             self.enemy_qlex2[i].textChanged[str].connect(self.onChanged)
 
@@ -381,7 +406,6 @@ class KFHPyBot(QMainWindow):
         stage_hbox.addLayout(stage_vbox)
         stage_hbox.addStretch(1)
         stage_hbox.addLayout(self.enemy_vbox)
-
 
         # Buff
         self.lblBuff = QLabel(self)
@@ -495,18 +519,15 @@ class KFHPyBot(QMainWindow):
         buff_vbox.addLayout(buff_hboxo1)
         buff_vbox.addLayout(buff_hboxo2)
         buff_vbox.addStretch(1)
-        #self.setLayout(buff_vbox)
+        # self.setLayout(buff_vbox)
 
         window = QWidget()
         # Frame for layout and widget
         hbox = QHBoxLayout(window)
 
         self.battleOfHeroGuiAtBottomLeft()
-
         self.legendaryWarriorGuiAtBottomMid()
-
-        self.bottomright = QFrame(self)
-        self.bottomright.setFrameShape(QFrame.StyledPanel)
+        self.climbingMtGuiAtBottomRight()
 
         self.midframe = QFrame(self)
         self.midframe.setFrameShape(QFrame.StyledPanel)
@@ -533,7 +554,7 @@ class KFHPyBot(QMainWindow):
 
         # Main window
         self.setGeometry(1000, 30, 250, 250)
-        #self.guirestore()
+        # self.guirestore()
         self.setWindowTitle('KFH PyBot V 0.1')
         self.setWindowIcon(QIcon('rsc\\kfh.png'))
 
@@ -544,56 +565,56 @@ class KFHPyBot(QMainWindow):
 
         while keyPress == 0:
             QApplication.processEvents()
-            #Exit program when Key press = 'SPACE Bar'
+            # Exit program when Key press = 'SPACE Bar'
             keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
             # Take screen shot
             im = screenGrab()
 
-            gotoBigBrother =(60, 112)
+            gotoBigBrother = (60, 112)
             pixel = im.getpixel(gotoBigBrother)
             if pixel == (12, 35, 51):
                 invisibleClick(gotoBigBrother)
 
-            gotoSecreteRoom =(380, 65)
+            gotoSecreteRoom = (380, 65)
             pixel = im.getpixel(gotoSecreteRoom)
             if pixel == (102, 66, 17):
                 invisibleClick(gotoSecreteRoom)
 
-            gotoConsiderRoom =(246, 354)
+            gotoConsiderRoom = (246, 354)
             pixel = im.getpixel(gotoConsiderRoom)
             if pixel == (25, 85, 76):
                 invisibleClick(gotoConsiderRoom)
 
-            #Conduct brush BUG
-            dragAtMid =(550, 243)
+            # Conduct brush BUG
+            dragAtMid = (550, 243)
             pixel = im.getpixel(dragAtMid)
 
             xleft, ytop = getKFHWindow()
-            dragAtMid =(xleft+550, ytop+243)
-            if pixel == (17, 60, 68):
-                #Up4
-                for i in range(0,4):
+            dragAtMid = (xleft+550, ytop+243)
+            if pixel == (17, 57, 68):
+                # Up4
+                for i in range(0, 4):
                     pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, -50, duration=0.1)
 
-                #Down 2, Up 2 for 3 rounds
-                for i in range(0,3):
-                    #Down 2
+                # Down 2, Up 2 for 3 rounds
+                for i in range(0, 3):
+                    # Down 2
                     pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, 50, duration=0.1)
                     pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, 50, duration=0.1)
-                    #Up 2
+                    # Up 2
                     pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, -50, duration=0.1)
                     pyautogui.moveTo((dragAtMid))
                     pyautogui.dragRel(0, -50, duration=0.1)
-                #Up 1
+                # Up 1
                 pyautogui.moveTo((dragAtMid))
                 pyautogui.dragRel(0, -50, duration=0.1)
 
-                #Stop when found blue item
+                # Stop when found blue item
                 # time.sleep(0.5)
                 # checkBlueItemPos =(415, 211)
                 # pixel = im.getpixel(checkBlueItemPos)
@@ -604,14 +625,13 @@ class KFHPyBot(QMainWindow):
                     break
                 else:
                     print(pos)
-                    #Check First
-                    checkFirst =(590, 155)
+                    # Check First
+                    checkFirst = (590, 155)
                     invisibleClick(checkFirst)
-                    #extract
-                    extractItem =(265, 395)
+                    # extract
+                    extractItem = (265, 395)
                     invisibleClick(extractItem)
                     time.sleep(1.5)
-
 
     def legendaryWarriorGuiAtBottomMid(self):
         self.bottommid = QFrame(self)
@@ -644,35 +664,71 @@ class KFHPyBot(QMainWindow):
         self.legendary_hbox3.addWidget(self.qle_battleLegendary2)
         self.legendary_hbox3.addStretch(1)
 
-        self.brush_vbox = QVBoxLayout()
-        self.brush_vbox.addLayout(self.legendary_hbox1)
-        self.brush_vbox.addLayout(self.legendary_hbox2)
-        self.brush_vbox.addLayout(self.legendary_hbox3)
-        self.brush_vbox.addStretch(1)
+        self.legendary_vbox = QVBoxLayout()
+        self.legendary_vbox.addLayout(self.legendary_hbox1)
+        self.legendary_vbox.addLayout(self.legendary_hbox2)
+        self.legendary_vbox.addLayout(self.legendary_hbox3)
+        self.legendary_vbox.addStretch(1)
 
-        self.bottommid.setLayout(self.brush_vbox)
+        self.bottommid.setLayout(self.legendary_vbox)
+
+    def climbingMtGuiAtBottomRight(self):
+        self.bottomright = QFrame(self)
+        self.bottomright.setFrameShape(QFrame.StyledPanel)
+        self.qbtn_mtClimbing = QPushButton('ต่อสู้', self)
+        self.qbtn_mtClimbing.clicked.connect(self.general_battle)
+        self.qbtn_mtClimbing.resize(self.qbtn_mtClimbing.sizeHint())
+        self.mtClimbing_hbox1 = QHBoxLayout()
+        self.mtClimbing_hbox1.addWidget(self.qbtn_mtClimbing)
+        self.mtClimbing_hbox1.addStretch(1)
+
+        self.lbl_mtClimbing11 = QLabel(self)
+        self.lbl_mtClimbing11.setText('รอบต่อสู้: ')
+        self.lbl_mtClimbing12 = QLabel(self)
+        self.lbl_mtClimbing12.setText('00')
+        self.mtClimbing_hbox2 = QHBoxLayout()
+        self.mtClimbing_hbox2.addWidget(self.lbl_mtClimbing11)
+        self.mtClimbing_hbox2.addWidget(self.lbl_mtClimbing12)
+        self.mtClimbing_hbox2.addStretch(1)
+
+        self.lbl_mtClimbing21 = QLabel(self)
+        self.lbl_mtClimbing21.setText('อันดับประลอง: ')
+        self.qle_mtClimbing2 = QLineEdit(self)
+        self.qle_mtClimbing2.setText('2')
+        self.mtClimbing_hbox3 = QHBoxLayout()
+        self.mtClimbing_hbox3.addWidget(self.lbl_mtClimbing21)
+        self.mtClimbing_hbox3.addWidget(self.qle_mtClimbing2)
+        self.mtClimbing_hbox3.addStretch(1)
+
+        self.mtClimbing_vbox = QVBoxLayout()
+        self.mtClimbing_vbox.addLayout(self.mtClimbing_hbox1)
+        self.mtClimbing_vbox.addLayout(self.mtClimbing_hbox2)
+        self.mtClimbing_vbox.addLayout(self.mtClimbing_hbox3)
+        self.mtClimbing_vbox.addStretch(1)
+
+        self.bottomright.setLayout(self.mtClimbing_vbox)
 
     def enteringKFH(self):
         pos = None
-        while pos == None:
+        while pos is None:
             pos = pyautogui.locateOnScreen('rsc\\kfh-icon.png')
         centerPos = pyautogui.center(pos)
         pyautogui.click(centerPos)
 
         pos = None
-        while pos == None:
+        while pos is None:
             pos = pyautogui.locateOnScreen('rsc\\enter-game.png')
         centerPos = pyautogui.center(pos)
         pyautogui.click(centerPos)
 
         pos = None
-        while pos == None:
+        while pos is None:
             pos = pyautogui.locateOnScreen('rsc\\enter-game2.png')
         centerPos = pyautogui.center(pos)
         pyautogui.click(centerPos)
 
         pos = None
-        while pos == None:
+        while pos is None:
             pos = pyautogui.locateOnScreen('rsc\\activity-page.png')
         centerPos = pyautogui.center(pos)
         pyautogui.click(centerPos)
@@ -685,18 +741,18 @@ class KFHPyBot(QMainWindow):
 
         while keyPress == 0:
             QApplication.processEvents()
-            #Exit program when Key press = 'SPACE Bar'
+            # Exit program when Key press = 'SPACE Bar'
             keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
             tm = datetime.datetime.now().time()
             print('Waiting Legendary Battle... : '+str(tm.hour)+':'+str(tm.minute)+':'+str(tm.second), end="\r")
             time.sleep(1)
 
-            if (tm.hour == 13 or tm.hour == 21 or tm.hour == 22 ) and tm.minute == 0 and tm.second >= 3:
+            if (tm.hour == 13 or tm.hour == 21 or tm.hour == 22) and tm.minute == 0 and tm.second >= 3:
                 # Eliminate Teamviewer popup
-                for i in range (0, 3): #Do 3 times for ensure
+                for i in range(0, 3):  # Do 3 times for ensure
                     pos = pyautogui.locateOnScreen('rsc\\teamviewer-ok.png')
-                    if pos: #if exist click "OK"
+                    if pos:  # if exist click "OK"
                         centerPos = pyautogui.center(pos)
                         pyautogui.click(centerPos)
 
@@ -716,8 +772,8 @@ class KFHPyBot(QMainWindow):
                 # time.sleep(1)
                 break
 
-        #To prevent KFH BUG show abmormal screen
-        #Enter battle
+        # To prevent KFH BUG show abmormal screen
+        # Enter battle
         for x in range(1, 3):
             enterBattlePos = (30, 240)
             invisibleClick(enterBattlePos)
@@ -725,56 +781,54 @@ class KFHPyBot(QMainWindow):
         keyPress = 0
         while keyPress == 0:
             QApplication.processEvents()
-            #Exit program when Key press = 'SPACE Bar'
+            # Exit program when Key press = 'F1'
             keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
-            #Take screen shot
+            # Take screen shot
             im = screenGrab()
 
-            #Continue battle screen
+            # Continue battle screen
             contBattlePos = (570, 213)
             contBattlePixel = im.getpixel(contBattlePos)
             if contBattlePixel == (243, 218, 135):
                 invisibleClick(contBattlePos)
 
-
-            #Enter battle
+            # Enter battle
             enterBattlePos = (30, 240)
             enterBattlePixel = im.getpixel(enterBattlePos)
             if enterBattlePixel == (42, 143, 135):
                 invisibleClick(enterBattlePos)
 
-            #Join battle
+            # Join battle
             joinBattlePos = (550, 241)
             joinBattlePixel = im.getpixel(joinBattlePos)
             if joinBattlePixel == (255, 211, 111):
                 invisibleClick(joinBattlePos)
 
-            #Start battle
+            # Start battle
             startBattlePos = (590, 392)
             normalBattlePixel = (254, 193, 95)
             refreshGoldPixel = (47, 205, 240)
             startBattlePixel = im.getpixel(startBattlePos)
             if startBattlePixel == normalBattlePixel:
                 battle_count += 1
-                #Fire the clicks to enter battle
+                # Fire the clicks to enter battle
                 for x in range(1, 10):
                     invisibleClick(startBattlePos)
                 time.sleep(.1)
 
-            #Refresh gold?
+            # Refresh gold?
             elif startBattlePixel == refreshGoldPixel:
-                #Last shot
+                # Last shot
                 checkLastshotPos = (182, 116)
                 lastshotPixel = im.getpixel(checkLastshotPos)
                 if lastshotPixel == (6, 35, 50):
                     battle_count += 1
                     gold_refreshCount += 1
-                    #Fire the clicks to enter battle
+                    # Fire the clicks to enter battle
                     for x in range(1, 10):
                         invisibleClick(startBattlePos)
                     time.sleep(.1)
-
 
                 else:
                     checkLessThan40PercentPos = (317, 125)
@@ -783,28 +837,105 @@ class KFHPyBot(QMainWindow):
                         if lessThan40PercentPixel == (15, 38, 51):
                             battle_count += 1
                             gold_refreshCount += 1
-                            #Fire the clicks to enter battle
+                            # Fire the clicks to enter battle
                             for x in range(1, 10):
                                 invisibleClick(startBattlePos)
                             time.sleep(.1)
 
-            #Next
-            nextBTNPos =(460, 412)
+            # Next
+            nextBTNPos = (460, 412)
             pixel = im.getpixel(nextBTNPos)
             if pixel == (27, 68, 68):
                 invisibleClick(nextBTNPos)
 
-            #Update stats
+            # Update stats
             self.lbl_battleLegendary12.setText(str(battle_count))
             self.lbl_battleLegendary22.setText(str(gold_usedTable[gold_refreshCount]) + ' / ')
 
-            #End
-            endCheckPos =(359, 64)
+            # End
+            endCheckPos = (359, 64)
             pixel = im.getpixel(endCheckPos)
             if pixel == (207, 207, 207):
                 tm = datetime.datetime.now().time()
                 print('End : Legendary Battle... @ '+str(tm.hour)+':'+str(tm.minute)+':'+str(tm.second), end="\r")
                 break
+
+    def matched_n_clicked(self, pos, pixel_color, img):
+            get_pixel_color = img.getpixel(pos)
+            if get_pixel_color == pixel_color:
+                invisibleClick(pos)
+                time.sleep(.1)
+                return True
+            else:
+                return False
+
+    def get_mouse_clicked(self, img):
+        global mouse_click_pos
+
+        # Waiting for mouse click then take mouse click POS as input
+        hm = pyHook.HookManager()
+        hm.SubscribeMouseLeftDown(onclick)
+        hm.HookMouse()
+
+        xpos = 0
+        while xpos == 0:
+            QApplication.processEvents()
+            pythoncom.PumpWaitingMessages()
+            xpos, ypos = mouse_click_pos
+
+        enterBattlePixel = mouse_click_pos
+        # need to clear mouse_click_pos before enter next loop
+        mouse_click_pos = (0, 0)
+        print(enterBattlePixel)
+        hm.UnhookMouse()
+        get_pixel_color = img.getpixel(enterBattlePixel)
+        return enterBattlePixel, get_pixel_color
+
+    def general_battle(self):
+        keyPress = 0
+        battle_count = 0
+
+        hold_on_chrome_accessing()
+
+        im = screenGrab()
+        enterBattlePixel, get_pixel_color = self.get_mouse_clicked(im)
+
+        keyPress = 0
+        while keyPress == 0:
+            QApplication.processEvents()
+            # Exit program when Key press = 'F1'
+            keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
+            # Take screen shot
+            im = screenGrab()
+
+            # Ending dungeon battle if need gold refresh
+            if self.matched_n_clicked((390, 230), (255, 191, 0), im):
+                break
+            elif self.matched_n_clicked((457, 237), (132, 81, 52), im):
+                break
+
+            # Start battle if color is matched
+            if self.matched_n_clicked(enterBattlePixel, get_pixel_color, im):
+                battle_count += 1
+
+            # Start battle
+            self.matched_n_clicked((470, 256), (246, 186, 112), im)
+            # Fighting Screen
+            skipFightBTNPos = (310, 400)
+            if self.matched_n_clicked((365, 55), (240, 141, 32), im):
+                invisibleClick(skipFightBTNPos)
+
+            # Confirm to continue battle refresh Battle passport
+            self.matched_n_clicked((375, 308), (34, 122, 105), im)
+
+            # Next
+            self.matched_n_clicked((460, 412), (27, 68, 68), im)
+
+            # Confirm for dungeon
+            self.matched_n_clicked((384, 351), (25, 92, 85), im)
+
+            # Update stats
+            self.lbl_mtClimbing12.setText(str(battle_count))
 
     def battleOfHeroGuiAtBottomLeft(self):
         self.bottomleft = QFrame(self)
@@ -849,16 +980,18 @@ class KFHPyBot(QMainWindow):
         battle_win = 0
         battle_lose = 0
 
+        hold_on_chrome_accessing()
+
         while keyPress == 0:
             QApplication.processEvents()
-            #Exit program when Key press = 'SPACE Bar'
+            # Exit program when Key press = 'SPACE Bar'
             keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
             # Take screen shot
             im = screenGrab()
 
             # Runout of ticket, Stop battle
-            gotoMarketBTNPos =(460, 310)
+            gotoMarketBTNPos = (460, 310)
             pixel = im.getpixel(gotoMarketBTNPos)
             if pixel == (24, 85, 78):
                 break
@@ -880,32 +1013,32 @@ class KFHPyBot(QMainWindow):
             startBattlePixel = im.getpixel(startBattlePos)
             if startBattlePixel == (30, 152, 158):
                 # Over limit > 15 battles/day
-                checkOverLimitPos =(270, 233)
+                checkOverLimitPos = (270, 233)
                 pixel = im.getpixel(checkOverLimitPos)
                 if pixel == (133, 80, 51):
                     break
                 else:
                     invisibleClick(startBattlePos)
 
-            #Fighting Screen
-            fightScreenPos =(365,55)
-            skipFightBTNPos =(310,400)
+            # Fighting Screen
+            fightScreenPos = (365, 55)
+            skipFightBTNPos = (310, 400)
             pixel = im.getpixel(fightScreenPos)
             if pixel == (240, 141, 32):
                 invisibleClick(skipFightBTNPos)
 
             # Next
-            nextBTNPos =(448,370)
+            nextBTNPos = (448, 370)
             pixel = im.getpixel(nextBTNPos)
             if pixel == (25, 98, 86):
-                winCheckPos =(296,83)
+                winCheckPos = (296, 83)
                 pixel = im.getpixel(winCheckPos)
                 if pixel == (67, 31, 25):
                     battle_win += 1
                     battle_round += 1
                     invisibleClick(nextBTNPos)
                 else:
-                    battle_lose +=1
+                    battle_lose += 1
                     battle_round += 1
                     invisibleClick(nextBTNPos)
 
@@ -914,13 +1047,12 @@ class KFHPyBot(QMainWindow):
             self.lbl_battle22.setText(str(battle_win) + ' / ' + str(battle_lose))
 
             # Confirm to continue battle > 10 times
-            contBTNPos =(448,305)
+            contBTNPos = (448, 305)
             pixel = im.getpixel(contBTNPos)
             if pixel == (29, 106, 97):
                 invisibleClick(contBTNPos)
 
             time.sleep(.1)
-
 
     def onChanged(self, text):
         try:
@@ -942,7 +1074,7 @@ class KFHPyBot(QMainWindow):
                 self.avoidLimitx3[i] = int(self.enemy_qlex3[i].text())
                 self.avoidLimitx2[i] = int(self.enemy_qlex2[i].text())
         except Exception:
-            QMessageBox.about(self, 'Error','No config file')
+            QMessageBox.about(self, 'Error', 'No config file')
             pass
         else:
             pass
@@ -950,11 +1082,9 @@ class KFHPyBot(QMainWindow):
             pass
 
     def closeEvent(self, event):
-        reply = QMessageBox.question(self, 'Message',
-            "Are you sure to quit?", QMessageBox.Yes |
-            QMessageBox.No, QMessageBox.No)
+        reply = QMessageBox.question(self, 'Message', "Are you sure to quit?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
-        #self.guisave()
+        # self.guisave()
 
         if reply == QMessageBox.Yes:
             event.accept()
@@ -966,29 +1096,29 @@ class KFHPyBot(QMainWindow):
             pixelBuff_15 = im.getpixel(self.getBuff_15_BTNPos)
             pixelBuff_3 = im.getpixel(self.getBuff_3_BTNPos)
 
-            #Choose HP/PWR Buff 30%
+            # Choose HP/PWR Buff 30%
             if self.chooseHPPWR30Buff(pixelBuff_30, pixelBuff_15):
                 invisibleClick(self.getBuff_30_BTNPos)
                 self.updateBuff2GUI()
-            #Choose HP/PWR Buff 15%
+            # Choose HP/PWR Buff 15%
             elif self.chooseHPPWR15Buff(pixelBuff_15):
                 invisibleClick(self.getBuff_15_BTNPos)
                 self.updateBuff2GUI()
-            #Choose PRT/INT/AGI Buff 30%
+            # Choose PRT/INT/AGI Buff 30%
             elif self.chooseOther30Buff(pixelBuff_30):
                 invisibleClick(self.getBuff_30_BTNPos)
                 self.updateBuff2GUI()
-            #Choose PRT/INT/AGI Buff 15%
+            # Choose PRT/INT/AGI Buff 15%
             elif self.chooseOther15Buff(pixelBuff_15):
                 invisibleClick(self.getBuff_15_BTNPos)
                 self.updateBuff2GUI()
-            #Choose Buff 3%
+            # Choose Buff 3%
             elif self.choose3PercentBuff(pixelBuff_3):
                     invisibleClick(self.getBuff_3_BTNPos)
                     self.updateBuff2GUI()
 
     def chooseHPPWR30Buff(self, pixelBuff_30, pixelBuff_15):
-        #Buff nomalization - when HP/PWR greather than each other > 300%
+        # Buff nomalization - when HP/PWR greather than each other > 300%
         if (pixelBuff_30 == self.HP30) and (self.buffCurrent[self.HP] < self.buffLimit[self.HP]):
             if pixelBuff_15 == self.PWR15:
                 if self.buffCurrent[self.HP] < (self.buffCurrent[self.PWR] + 300):
@@ -1104,10 +1234,11 @@ class KFHPyBot(QMainWindow):
                             fight = False
                             break
         return fight
+
     def guisave(self, fname):
         fileName, ext = fname
         if fileName != '':
-            #Strip '.ini' extension if exist.
+            # Strip '.ini' extension if exist.
             if '.ini' in fileName:
                 fileName = fileName[:-4]
 
@@ -1156,9 +1287,12 @@ class KFHPyBot(QMainWindow):
 
     def attackEvilParty(self):
         keyPress = 0
+
+        hold_on_chrome_accessing()
+
         while keyPress == 0:
             QApplication.processEvents()
-            #Exit program when Key press = 'SPACE Bar'
+            # Exit program when Key press = 'SPACE Bar'
             keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
 
             # Take screen shot
@@ -1171,13 +1305,13 @@ class KFHPyBot(QMainWindow):
                 break
 
             # Check passport
-            checkPassportPos =(580,390)
+            checkPassportPos = (580, 390)
             pixel = im.getpixel(checkPassportPos)
             if pixel == (10, 35, 51):
                 invisibleClick(checkPassportPos)
 
             # Next
-            nextBTNPos =(442,395)
+            nextBTNPos = (442, 395)
             pixel = im.getpixel(nextBTNPos)
             if pixel == (26, 105, 93):
                 invisibleClick(nextBTNPos)
@@ -1190,48 +1324,67 @@ class KFHPyBot(QMainWindow):
                     useStar += self.buffCurrent[x]
                 self.qleUseStar.setText(str(useStar))
 
-            #Get Reward
-            getRewardBTNPos =(370,360)
+            # Get Reward
+            getRewardBTNPos = (370, 360)
             pixel = im.getpixel(getRewardBTNPos)
             if pixel == (27, 125, 110):
                 invisibleClick(getRewardBTNPos)
 
-            #Fighting Screen
-            fightScreenPos =(365,55)
-            skipFightBTNPos =(380,390)
+            # Fighting Screen
+            fightScreenPos = (365, 55)
+            skipFightBTNPos = (380, 390)
             pixel = im.getpixel(fightScreenPos)
             if pixel == (240, 141, 32):
                 invisibleClick(skipFightBTNPos)
 
-            #x3BTN    [213,330],(118, 39, 15)
-            #x2BTN    [347,330],(132, 42, 20)
-            #x1BTN    [478,330],(157, 51, 32)
-            #x3
+            # x3BTN    [213,330],(118, 39, 15)
+            # x2BTN    [347,330],(132, 42, 20)
+            # x1BTN    [478,330],(157, 51, 32)
+            # x3
             if (self.stageCurrent <= self.stageLimit[0]) and self.isFightStage(ENEMY_X3):
-                x3BTNPos =(213,330)
+                x3BTNPos = (213, 330)
                 pixel = im.getpixel(x3BTNPos)
                 if pixel == (118, 39, 15):
                     invisibleClick(x3BTNPos)
-            #x2
+            # x2
             elif self.stageCurrent <= self.stageLimit[1] and self.isFightStage(ENEMY_X2):
-                x2BTNPos =(347,330)
+                x2BTNPos = (347, 330)
                 pixel = im.getpixel(x2BTNPos)
                 if pixel == (136, 42, 20):
                     invisibleClick(x2BTNPos)
-            #x1
+            # x1
             elif self.stageCurrent <= self.stageLimit[2]:
-                x1BTNPos =(478,330)
+                x1BTNPos = (478, 330)
                 pixel = im.getpixel(x1BTNPos)
                 if pixel == (157, 51, 32):
                     invisibleClick(x1BTNPos)
-            else: # Reach limit stage
+            else:  # Reach limit stage
                 break
 
-            #Choose Buff
+            # Choose Buff
             self.getBuff(im)
 
             time.sleep(.1)
 
+    def training(self):
+        pass
+
+
+# Hold on when chrome remote is under accessing
+def hold_on_chrome_accessing():
+    loc = (0, 0)
+    while loc is not None:
+        loc = pyautogui.locateOnScreen('rsc\\stop-sharing.png')
+
+
+# Mouse event detection
+def onclick(event):
+    global mouse_click_pos
+    mouse_click_x, mouse_click_y = event.Position
+    mouse_click_x = mouse_click_x - (screen_start_x - 1)
+    mouse_click_y = mouse_click_y - (screen_start_y - 1)
+    mouse_click_pos = (mouse_click_x, mouse_click_y)
+    return True
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
