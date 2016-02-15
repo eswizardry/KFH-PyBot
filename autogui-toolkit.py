@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: eswizardry
 # @Date:   2016-02-08 18:13:11
-# @Last Modified by:   eswizardry
-# @Last Modified time: 2016-02-14 11:51:50
+# @Last Modified by:   mcsbanch
+# @Last Modified time: 2016-02-15 14:03:39
 """
 
 All coordinates assume a screen resolution of 1366x768, and Chrome
@@ -13,25 +13,23 @@ x_pad = 219
 y_pad = 238
 Play area =  x_pad+1, y_pad+1, 888, 718
 """
+import os
 import sys
+import time
+
+import win32api
+import win32gui
+
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-from PIL import ImageGrab
-from PIL import ImageOps
 from numpy import *
-import os
-import time
-import zlib
-import win32api
-import win32con
-import win32ui
-import win32gui
-import pyautogui
+from PIL import ImageGrab
+
 # Globals
 # ------------------
-window_name = 'Calculator'
+global_window_name = 'Calculator'
 VK_CODE = {'0': 0x30,
            '1': 0x31,
            '2': 0x32,
@@ -94,8 +92,8 @@ VK_CODE = {'0': 0x30,
            'F24': 0x87}
 
 
-def get_target_window(resize=False):
-    hwnd = win32gui.FindWindow(None, window_name)
+def getTargetWindow(resize=False):
+    hwnd = win32gui.FindWindow(None, global_window_name)
     if hwnd:
         if resize:
             win32gui.MoveWindow(hwnd, screen_start_x, screen_start_y, x_size, y_size, True)
@@ -106,12 +104,12 @@ def get_target_window(resize=False):
             return xleft, ytop, width, height
     else:
         w = QWidget()
-        QMessageBox.critical(w, "Error", window_name+" instance is not exist.")
+        QMessageBox.critical(w, "Error", global_window_name+" instance is not exist.")
         exit()
 
 
-def get_cords():
-    xleft, ytop, width, height = get_target_window()
+def getCords():
+    xleft, ytop, width, height = getTargetWindow()
     x, y = win32api.GetCursorPos()
     x = x - xleft
     y = y - ytop
@@ -119,10 +117,10 @@ def get_cords():
     return pos
 
 
-def get_pos_pixel(cord):
-    im = grab_screen()
+def getPosPixel(cord):
+    im = grabScreen()
 
-    xleft, ytop, width, height = get_target_window()
+    xleft, ytop, width, height = getTargetWindow()
     if cord < (width, height):
         pos = (cord[0], cord[1])
         pixel = im.getpixel(pos)
@@ -131,56 +129,54 @@ def get_pos_pixel(cord):
         print("Mouse position is out of target window")
 
 
-def grab_screen():
-    xleft, ytop, width, height = get_target_window()
+def grabScreen():
+    xleft, ytop, width, height = getTargetWindow()
     box = (xleft, ytop, xleft + width, ytop + height)
     image = ImageGrab.grab(box)
     return image
 
 
-def get_mouse_info():
-    keyPress = 0
+def getMouseInfo():
+    key_press = 0
     pos = 0, 0
-    oldPos = 0, 0
-    while keyPress == 0:
-        keyPress = win32api.GetAsyncKeyState(VK_CODE['q'])
+    old_pos = 0, 0
+    while key_press == 0:
+        QApplication.processEvents()
+        key_press = win32api.GetAsyncKeyState(VK_CODE['q'])
         try:
-            pos = get_cords()
-            xleft, ytop, width, height = get_target_window()
+            pos = getCords()
+            xleft, ytop, width, height = getTargetWindow()
         except Exception:
             pass
-        else:
-            pass
-        if oldPos != pos:
-            oldPos = pos
+
+        if old_pos != pos:
+            old_pos = pos
             print('======================================')
             print('Window origin: ' + str((xleft, ytop)))
             print('Window size: ' + str((width, height)))
             print("Mouse Position(x,y): ", pos)
             try:
-                get_pos_pixel(pos)
+                getPosPixel(pos)
             except Exception:
                 pass
-            else:
-                pass
 
 
-def capture_target_window():
-    xleft, ytop, width, height = get_target_window()
+def snapTargetWindow():
+    xleft, ytop, width, height = getTargetWindow()
     box = (xleft, ytop, xleft + width, ytop + height)
     im = ImageGrab.grab(box)
-    im.save(os.getcwd() + "\\snap\\" + '\\' + window_name + '__' + str(int(time.time())) + '.png', 'PNG')
+    im.save(os.getcwd() + "\\snap\\" + '\\' + global_window_name + '__' + str(int(time.time())) + '.png', 'PNG')
     print('Target window capture is done.')
 
 
-def capture_all_screen():
+def snapEntireWindow():
     box = (0, 0, 1366, 768)
     im = ImageGrab.grab(box)
-    im.save(os.getcwd() + "\\snap\\" + '\\' + window_name + '__' + str(int(time.time())) + '.png', 'PNG')
+    im.save(os.getcwd() + "\\snap\\" + '\\' + global_window_name + '__' + str(int(time.time())) + '.png', 'PNG')
     print('All screen capture is done.')
 
 
-class Autogui_tk_ui(QWidget):
+class AutoGuiTk(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -188,48 +184,59 @@ class Autogui_tk_ui(QWidget):
         self.initUI()
 
     def initUI(self):
-
         QToolTip.setFont(QFont('SansSerif', 10))
 
-        self.setToolTip('This is a <b>QWidget</b> widget')
+        self.mouse_track_btn = QPushButton('Mouse Track', self)
+        self.mouse_track_btn.clicked.connect(getMouseInfo)
+        self.mouse_track_btn.setToolTip('To get <b>Mouse</b> information')
+        self.mouse_track_btn.resize(self.mouse_track_btn.sizeHint())
 
-        self.btn = QPushButton('Mouse', self)
-        self.btn.clicked.connect(get_mouse_info)
-        self.btn.setToolTip('This is a <b>QPushButton</b> widget')
-        self.btn.resize(self.btn.sizeHint())
-        self.btn.move(10, 10)
-        self.btn2 = QPushButton('Capture', self)
-        self.btn2.clicked.connect(capture_target_window)
-        self.btn2.setToolTip('This is a <b>QPushButton</b> widget')
-        self.btn2.resize(self.btn.sizeHint())
-        self.btn2.move(100, 10)
-        self.lbl1 = QLabel(self)
-        self.lbl1.setText('Target window name: ')
-        self.lbl1.move(200, 10)
-        self.ledit1 = QLineEdit(self)
-        self.ledit1.setText(window_name)
-        self.ledit1.textChanged[str].connect(self.onChanged)
-        self.ledit1.move(200, 25)
+        self.snap_target_btn = QPushButton('Snap window', self)
+        self.snap_target_btn.clicked.connect(snapTargetWindow)
+        self.snap_target_btn.setToolTip('To <b>snap</b> targeting window')
+        self.snap_target_btn.resize(self.snap_target_btn.sizeHint())
 
-        self.setGeometry(900, 100, 400, 50)
-        self.setWindowTitle('autoGui Tool kit')
+        self.snap_all_btn = QPushButton('Snap All', self)
+        self.snap_all_btn.clicked.connect(snapEntireWindow)
+        self.snap_all_btn.setToolTip('To <b>snap</b> entire window')
+        self.snap_all_btn.resize(self.snap_all_btn.sizeHint())
+
+        self.input_lbl = QLabel(self)
+        self.input_lbl.setText('Enter Window name: ')
+        self.input_qle = QLineEdit(self)
+        self.input_qle.setText(global_window_name)
+        self.input_qle.textChanged[str].connect(self.onChanged)
+
+        #  Layout
+        self.h_box1 = QHBoxLayout()
+        self.h_box2 = QHBoxLayout()
+        self.h_box1.addWidget(self.mouse_track_btn)
+        self.h_box1.addWidget(self.snap_target_btn)
+        self.h_box1.addWidget(self.snap_all_btn)
+        self.h_box1.addStretch(1)
+        self.h_box2.addWidget(self.input_lbl)
+        self.h_box2.addWidget(self.input_qle)
+        self.h_box2.addStretch(1)
+        # Main horizontal layout
+        self.main_vbox = QVBoxLayout()
+        self.main_vbox.addLayout(self.h_box1)
+        self.main_vbox.addLayout(self.h_box2)
+        # self.main_vbox.addStretch(1)
+
+        self.setLayout(self.main_vbox)
+        self.setWindowTitle('Auto Gui TK')
         self.show()
 
     def onChanged(self, text):
         try:
-            global window_name
-            window_name = self.ledit1.text()
+            global global_window_name
+            global_window_name = self.input_qle.text()
         except Exception:
-            QMessageBox.about(self, 'Error', 'No config file')
-            pass
-        else:
-            pass
-        finally:
-            pass
+            QMessageBox.about(self, 'Error', 'Invalid input value!!!')
 
 
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
-    ex = Autogui_tk_ui()
+    gui_tk = AutoGuiTk()
     sys.exit(app.exec_())

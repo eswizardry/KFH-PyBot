@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
-# @Last Modified by:   eswizardry
-# @Last Modified time: 2016-02-14 19:42:23
+# @Last Modified by:   mcsbanch
+# @Last Modified time: 2016-02-15 11:11:18
 """
 KFH PyBot V 0.1
 """
@@ -54,6 +54,13 @@ class Enemy:
     """docstring for ClassName"""
     x3 = [336996082, 3290520429, 1112749524, 2574921780, 1644016021]
     x2 = [1801463166, 1985337230, 3680636007, 1470262155, 862735749]
+
+MASTER_CRC = {'DONGFANG':   336996082,
+              'XIMEN':      336996082,
+              'YI_DENG':    336996082,
+              'YAO_YUE':    336996082,
+              'YANG_XIAO':  336996082,
+              'XIE_XUN':    336996082}
 
 
 def getKFHWindow(resize=False):
@@ -874,7 +881,7 @@ class KFHPyBot(QMainWindow):
 
         # Waiting for mouse click then take mouse click POS as input
         hm = pyHook.HookManager()
-        hm.SubscribeMouseLeftDown(onclick)
+        hm.SubscribeMouseLeftDown(onClick)
         hm.HookMouse()
 
         xpos = 0
@@ -1367,7 +1374,10 @@ class KFHPyBot(QMainWindow):
             time.sleep(.1)
 
     def training(self):
-        pass
+        while 1:
+            QApplication.processEvents()
+
+            # Stop training when trainig successful rate < 100%
 
 
 # Hold on when chrome remote is under accessing
@@ -1378,7 +1388,7 @@ def hold_on_chrome_accessing():
 
 
 # Mouse event detection
-def onclick(event):
+def onClick(event):
     global mouse_click_pos
     mouse_click_x, mouse_click_y = event.Position
     mouse_click_x = mouse_click_x - (screen_start_x - 1)
