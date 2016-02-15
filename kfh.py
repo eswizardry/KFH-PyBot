@@ -3,7 +3,7 @@
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
 # @Last Modified by:   mcsbanch
-# @Last Modified time: 2016-02-15 11:11:18
+# @Last Modified time: 2016-02-15 14:36:30
 """
 KFH PyBot V 0.1
 """
@@ -902,7 +902,7 @@ class KFHPyBot(QMainWindow):
         keyPress = 0
         battle_count = 0
 
-        hold_on_chrome_accessing()
+        onHoldWhileChromeAccessing()
 
         im = screenGrab()
         enterBattlePixel, get_pixel_color = self.get_mouse_clicked(im)
@@ -987,7 +987,7 @@ class KFHPyBot(QMainWindow):
         battle_win = 0
         battle_lose = 0
 
-        hold_on_chrome_accessing()
+        onHoldWhileChromeAccessing()
 
         while keyPress == 0:
             QApplication.processEvents()
@@ -1295,7 +1295,7 @@ class KFHPyBot(QMainWindow):
     def attackEvilParty(self):
         keyPress = 0
 
-        hold_on_chrome_accessing()
+        onHoldWhileChromeAccessing()
 
         while keyPress == 0:
             QApplication.processEvents()
@@ -1381,10 +1381,12 @@ class KFHPyBot(QMainWindow):
 
 
 # Hold on when chrome remote is under accessing
-def hold_on_chrome_accessing():
-    loc = (0, 0)
-    while loc is not None:
+def onHoldWhileChromeAccessing():
+    hold_on = True
+    while hold_on:
         loc = pyautogui.locateOnScreen('rsc\\stop-sharing.png')
+        if loc is None:
+                hold_on = False
 
 
 # Mouse event detection
