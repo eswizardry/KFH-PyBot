@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
-# @Last Modified by:   mcsbanch
-# @Last Modified time: 2016-02-15 14:36:30
+# @Last Modified by:   eswizardry
+# @Last Modified time: 2016-02-16 00:19:51
 """
 KFH PyBot V 0.1
 """
@@ -55,12 +55,39 @@ class Enemy:
     x3 = [336996082, 3290520429, 1112749524, 2574921780, 1644016021]
     x2 = [1801463166, 1985337230, 3680636007, 1470262155, 862735749]
 
-MASTER_CRC = {'DONGFANG':   336996082,
-              'XIMEN':      336996082,
-              'YI_DENG':    336996082,
-              'YAO_YUE':    336996082,
-              'YANG_XIAO':  336996082,
-              'XIE_XUN':    336996082}
+MASTER_CRC = {'green_critical':   1523289932,
+              'green_anticri':    3480184075,
+              'green_dodge':      3998951483,
+              'green_hit':      1897901501,
+              'green_meditate':  1509820003,
+              'green_speed':      850053447,
+              'green_inner':    3799646525,
+              'green_protect':    1135142825,
+              'green_ATK':         4274791047,
+              'green_HP':         1021071819,
+
+              'blue_anticri':    1436898714,
+              'blue_meditate':    2349639666,
+              'blue_dodge':    3182278704,
+              'blue_hit':    4293102806,
+              'blue_inner':    2316652322,
+              'blue_protect':    950597022,
+              'blue_speed':    2737793844,
+              'blue_ATK':      1005769789,
+              'blue_HP':       2828546249,
+
+              'violet_anticri':  139314889,
+              'violet_hit':    1281857028,
+              'violet_speed':  2204472528,
+              'violet_inner':  325248999,
+              'violet_protect':  3031685518,
+              'violet_ATK':    1005769789,
+              'vilolet_HP':  2699097725,
+
+              'special_prodjood':  3678131005,
+              'special_reduce_damage':  4293102806,
+              'special_crumble_level':  2349639666,
+              'special_crumble_rate':  325248999}
 
 
 def getKFHWindow(resize=False):
@@ -100,6 +127,13 @@ def getEnemy(enemyStage):
     enemy = zlib.crc32(enemy)
     # enemy = enemy.sum()
     return enemy
+
+
+def getMaster():
+    im = ImageOps.grayscale(imgGrab(570, 90, 624, 144))
+    master = array(im.getcolors())
+    master = zlib.crc32(master)
+    return master
 
 
 def invisibleClick(cord):
@@ -1374,8 +1408,42 @@ class KFHPyBot(QMainWindow):
             time.sleep(.1)
 
     def training(self):
-        while 1:
+        keyPress = 0
+        skill_cords = [(250, 240), (350, 240), (450, 240)]
+
+        loc = pyautogui.locateOnScreen('rsc\\normal-refresh.png')
+        if loc:
+            loc_center = pyautogui.center(loc)
+            pyautogui.moveTo(loc_center)
+        else:
+            print('None')
+
+        time.sleep(1)
+
+        loc = pyautogui.locateOnScreen('rsc\\apply-training.png')
+        if loc:
+            loc_center = pyautogui.center(loc)
+            pyautogui.moveTo(loc_center)
+        else:
+            print('None')
+
+        while keyPress == 0:
             QApplication.processEvents()
+            keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
+
+            # Training screen?
+            loc = pyautogui.locateOnScreen('rsc\\apply-training.png')
+            if loc:
+                for cord in range(0, 3):
+                    invisibleClick(skill_cords[cord])
+                    time.sleep(.1)
+                    master = getMaster()
+                    # print(master in MASTER_CRC.values())
+                    master_skill = [key for key, value in MASTER_CRC.items() if value == master][0]
+                    print(master_skill)
+
+            else:
+                print('Wait for training screen...')
 
             # Stop training when trainig successful rate < 100%
 
