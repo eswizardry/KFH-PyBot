@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
-# @Last Modified by:   eswizardry
-# @Last Modified time: 2016-02-16 00:19:51
+# @Last Modified by:   mcsbanch
+# @Last Modified time: 2016-02-16 15:56:17
 """
 KFH PyBot V 0.1
 """
@@ -55,39 +55,41 @@ class Enemy:
     x3 = [336996082, 3290520429, 1112749524, 2574921780, 1644016021]
     x2 = [1801463166, 1985337230, 3680636007, 1470262155, 862735749]
 
-MASTER_CRC = {'green_critical':   1523289932,
-              'green_anticri':    3480184075,
-              'green_dodge':      3998951483,
-              'green_hit':      1897901501,
-              'green_meditate':  1509820003,
-              'green_speed':      850053447,
-              'green_inner':    3799646525,
-              'green_protect':    1135142825,
-              'green_ATK':         4274791047,
-              'green_HP':         1021071819,
+SKILLS_DICT = {
+    'green_critical_blood':   1523289932,
+    'green_anticri_skip':    3480184075,
+    'green_dodge_skip':      3998951483,
+    'green_hit_skip':      1897901501,
+    'green_meditate_blood':  1509820003,
+    'green_speed_skip':      850053447,
+    'green_inner_skip':    3799646525,
+    'green_protect_skip':    1135142825,
+    'green_ATK_skip':         4274791047,
+    'green_HP_skip':         1021071819,
 
-              'blue_anticri':    1436898714,
-              'blue_meditate':    2349639666,
-              'blue_dodge':    3182278704,
-              'blue_hit':    4293102806,
-              'blue_inner':    2316652322,
-              'blue_protect':    950597022,
-              'blue_speed':    2737793844,
-              'blue_ATK':      1005769789,
-              'blue_HP':       2828546249,
+    'blue_anticri_skip':    1436898714,
+    'blue_meditate_blood':    2349639666,
+    'blue_dodge':    3182278704,
+    'blue_hit':    4293102806,
+    'blue_inner':    2316652322,
+    'blue_protect':    950597022,
+    'blue_speed':    2737793844,
+    'blue_ATK':      1005769789,
+    'blue_HP':       2828546249,
 
-              'violet_anticri':  139314889,
-              'violet_hit':    1281857028,
-              'violet_speed':  2204472528,
-              'violet_inner':  325248999,
-              'violet_protect':  3031685518,
-              'violet_ATK':    1005769789,
-              'vilolet_HP':  2699097725,
+    'violet_anticri_skip':  139314889,
+    'violet_hit_blood':    1281857028,
+    'violet_speed_blood':  2204472528,
+    'violet_inner_blood':  325248999,
+    'violet_protect_blood':  3031685518,
+    'violet_ATK_blood':    1005769789,
+    'vilolet_HP_blood':  2699097725,
 
-              'special_prodjood':  3678131005,
-              'special_reduce_damage':  4293102806,
-              'special_crumble_level':  2349639666,
-              'special_crumble_rate':  325248999}
+    'special_prodjood_blood':  3678131005,
+    'special_reduce_damage_blood':  4293102806,
+    'special_crumble_level_blood':  2349639666,
+    'special_crumble_rate_blood':  325248999
+}
 
 
 def getKFHWindow(resize=False):
@@ -129,7 +131,7 @@ def getEnemy(enemyStage):
     return enemy
 
 
-def getMaster():
+def getSkill():
     im = ImageOps.grayscale(imgGrab(570, 90, 624, 144))
     master = array(im.getcolors())
     master = zlib.crc32(master)
@@ -1411,22 +1413,6 @@ class KFHPyBot(QMainWindow):
         keyPress = 0
         skill_cords = [(250, 240), (350, 240), (450, 240)]
 
-        loc = pyautogui.locateOnScreen('rsc\\normal-refresh.png')
-        if loc:
-            loc_center = pyautogui.center(loc)
-            pyautogui.moveTo(loc_center)
-        else:
-            print('None')
-
-        time.sleep(1)
-
-        loc = pyautogui.locateOnScreen('rsc\\apply-training.png')
-        if loc:
-            loc_center = pyautogui.center(loc)
-            pyautogui.moveTo(loc_center)
-        else:
-            print('None')
-
         while keyPress == 0:
             QApplication.processEvents()
             keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
@@ -1436,16 +1422,89 @@ class KFHPyBot(QMainWindow):
             if loc:
                 for cord in range(0, 3):
                     invisibleClick(skill_cords[cord])
-                    time.sleep(.1)
-                    master = getMaster()
-                    # print(master in MASTER_CRC.values())
-                    master_skill = [key for key, value in MASTER_CRC.items() if value == master][0]
-                    print(master_skill)
+                    if isSkillExist(SKILLS_DICT):
+                        applyThisSkill()
+                    else:
+                        # Stop when encounter unknow skill
+                        break
 
+                    # master = getSkill()
+                    # # print(master in SKILLS_DICT.values())
+                    # master_skill = [key for key, value in SKILLS_DICT.items() if value == master][0]
+                    # print(master_skill)
+                if refreshSkill() is False:
+                    # Stop if training screen not exist
+                    break
+                time.sleep(.1)
             else:
                 print('Wait for training screen...')
 
-            # Stop training when trainig successful rate < 100%
+            # Stop when trainig successful rate < 100%
+
+        def applyThisSkill():
+            # Apply chicken blood skills set
+            chickenblood_skills_set = {key: value for (key, value) in SKILLS_DICT.items() if '_blood' in key}
+            # Normal skills set
+            normal_skills_set = {key: value for (key, value) in SKILLS_DICT.items() if 'skip' not in key}
+
+            if isSkillExist(chickenblood_skills_set):
+                learningSkill(True)
+                apply = True
+            elif isSkillExist(normal_skills_set):
+                learningSkill()
+                apply = True
+            else:
+                apply = False
+            return apply
+
+        def learningSkill(use_blood=False):
+            pos = pyautogui.locateOnScreen('rsc\\apply-training.png')
+            if pos:
+                centerPos = pyautogui.center(pos)
+                pyautogui.click(centerPos)
+
+                if use_blood:
+                    # Enabling chicken blood if not yet enable.
+                    enableChickenBlood()
+                else:
+                    # Disabling chicken blood if enabled.
+                    disableChickenBlood()
+
+                # learn (apply on confirm button)
+
+                # Skip training practice screen
+                skipPracticeScreen()
+                return True
+            else:
+                print('Training screen not exist!')
+                return False
+
+        def skipPracticeScreen():
+            pass
+
+        def enableChickenBlood():
+            pass
+
+        def disableChickenBlood():
+            pass
+
+        def refreshSkill():
+            pos = pyautogui.locateOnScreen('rsc\\normal-refresh.png')
+            if pos:
+                centerPos = pyautogui.center(pos)
+                pyautogui.click(centerPos)
+                # Any pop-up after refresh button clicked?
+                if 1:
+                    pass
+                return True
+            else:
+                print('Training screen not exist!')
+                return False
+
+        def isSkillExist(input_dict):
+            skill = getSkill()
+            skill in input_dict.values()
+            return skill
 
 
 # Hold on when chrome remote is under accessing
