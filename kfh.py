@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
-# @Last Modified by:   mcsbanch
-# @Last Modified time: 2016-02-16 15:56:17
+# @Last Modified by:   eswizardry
+# @Last Modified time: 2016-02-18 23:39:53
 """
 KFH PyBot V 0.1
 """
@@ -903,11 +903,12 @@ class KFHPyBot(QMainWindow):
                 print('End : Legendary Battle... @ '+str(tm.hour)+':'+str(tm.minute)+':'+str(tm.second), end="\r")
                 break
 
-    def matched_n_clicked(self, pos, pixel_color, img):
+    def matched_n_clicked(self, pos, pixel_color, img, click=True):
             get_pixel_color = img.getpixel(pos)
             if get_pixel_color == pixel_color:
-                invisibleClick(pos)
-                time.sleep(.1)
+                if click:
+                    invisibleClick(pos)
+                    time.sleep(.1)
                 return True
             else:
                 return False
@@ -1409,102 +1410,130 @@ class KFHPyBot(QMainWindow):
 
             time.sleep(.1)
 
+    def isSkillExist(self, input_dict):
+        skill = getSkill()
+        exist = skill in input_dict.values()
+        return exist
+
+    def applyThisSkill(self):
+        # Apply chicken blood skills set
+        chickenblood_skills_set = {key: value for (key, value) in SKILLS_DICT.items() if '_blood' in key}
+        # Normal skills set
+        normal_skills_set = {key: value for (key, value) in SKILLS_DICT.items() if 'skip' not in key}
+
+        if self.isSkillExist(chickenblood_skills_set):
+            self.learningSkill(True)
+            apply = True
+        elif self.isSkillExist(normal_skills_set):
+            self.learningSkill()
+            apply = True
+        else:
+            apply = False
+        return apply
+
+    def learningSkill(self, use_blood=False):
+        process_end = False
+        while process_end is False:
+            im = screenGrab()
+            # apply training button
+            if self.matched_n_clicked((560, 254), (255, 134, 8), im):
+                print('Apply training')
+
+            if use_blood:
+                # Enabling chicken blood if not yet enable.
+                self.enableChickenBlood(im)
+            else:
+                # Disabling chicken blood if enabled.
+                self.disableChickenBlood(im)
+
+            if self.matched_n_clicked((362, 316), (208, 200, 155), im):
+                print('Apply on confirm button')
+
+            if self.matched_n_clicked((352, 379), (64, 137, 132), im):
+                print('Skip training practice')
+
+            if self.matched_n_clicked((337, 314), (192, 181, 133), im):
+                print('Continue training')
+                process_end = True
+            # Skip training practice screen
+            # self.skipPracticeScreen()
+
+    def skipPracticeScreen(self):
+        pos = None
+        while pos is None:
+            pos = pyautogui.locateOnScreen('rsc\\skip-training.png')
+        centerPos = pyautogui.center(pos)
+        pyautogui.click(centerPos)
+        print('Skip training practice')
+
+        pos = None
+        while pos is None:
+            pos = pyautogui.locateOnScreen('rsc\\continue-training.png')
+        centerPos = pyautogui.center(pos)
+        pyautogui.click(centerPos)
+        print('Continue training')
+
+    def enableChickenBlood(self, im):
+        self.matched_n_clicked((476, 217), (218, 193, 119), im)
+        # print('Enable Chicken bloood')
+
+    def disableChickenBlood(self, im):
+        self.matched_n_clicked((476, 217), (33, 153, 43), im)
+        # print('Disable Chicken bloood')
+
+    def refreshSkill(self):
+        im = screenGrab()
+        if self.matched_n_clicked((142, 222), (75, 102, 102), im):
+            print('Refresh skill')
+            time.sleep(.1)
+
+            im = screenGrab()
+            if self.matched_n_clicked((392, 305), (27, 110, 99), im):
+                print('Confirm to refresh violet/special skill')
+            return True
+        else:
+            print('Training screen not exist!')
+            return False
+
+    def getCurrentSkill(self):
+        skill_crc_value = getSkill()
+        skill_key = [key for key, value in SKILLS_DICT.items() if value == skill_crc_value][0]
+        return(skill_key)
+
     def training(self):
         keyPress = 0
         skill_cords = [(250, 240), (350, 240), (450, 240)]
+        onHoldWhileChromeAccessing()
 
         while keyPress == 0:
             QApplication.processEvents()
             keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
+            im = screenGrab()
 
-            # Training screen?
-            loc = pyautogui.locateOnScreen('rsc\\apply-training.png')
+            loc = pyautogui.locateOnScreen('rsc\\successful-rate-95.png')
             if loc:
-                for cord in range(0, 3):
-                    invisibleClick(skill_cords[cord])
-                    if isSkillExist(SKILLS_DICT):
-                        applyThisSkill()
-                    else:
-                        # Stop when encounter unknow skill
+                # Stop when trainig successful rate < 100%
+                print('Successful rate < 100%, stop training !!!')
+                return
+            else:
+                # Training screen?
+                if self.matched_n_clicked((142, 222), (75, 102, 102), im, False):
+                    for cord in range(0, 3):
+                        invisibleClick(skill_cords[cord])
+                        if self.isSkillExist(SKILLS_DICT):
+                            found_skill = self.getCurrentSkill()
+                            print('***********************************')
+                            print('Found skill: ' + found_skill)
+                            self.applyThisSkill()
+                        else:
+                            # Stop when encounter unknow skill
+                            print('Unknow skill, stop training !!!')
+                            return
+                    if self.refreshSkill() is False:
+                        # Stop if training screen not exist
                         break
-
-                    # master = getSkill()
-                    # # print(master in SKILLS_DICT.values())
-                    # master_skill = [key for key, value in SKILLS_DICT.items() if value == master][0]
-                    # print(master_skill)
-                if refreshSkill() is False:
-                    # Stop if training screen not exist
-                    break
-                time.sleep(.1)
-            else:
-                print('Wait for training screen...')
-
-            # Stop when trainig successful rate < 100%
-
-        def applyThisSkill():
-            # Apply chicken blood skills set
-            chickenblood_skills_set = {key: value for (key, value) in SKILLS_DICT.items() if '_blood' in key}
-            # Normal skills set
-            normal_skills_set = {key: value for (key, value) in SKILLS_DICT.items() if 'skip' not in key}
-
-            if isSkillExist(chickenblood_skills_set):
-                learningSkill(True)
-                apply = True
-            elif isSkillExist(normal_skills_set):
-                learningSkill()
-                apply = True
-            else:
-                apply = False
-            return apply
-
-        def learningSkill(use_blood=False):
-            pos = pyautogui.locateOnScreen('rsc\\apply-training.png')
-            if pos:
-                centerPos = pyautogui.center(pos)
-                pyautogui.click(centerPos)
-
-                if use_blood:
-                    # Enabling chicken blood if not yet enable.
-                    enableChickenBlood()
                 else:
-                    # Disabling chicken blood if enabled.
-                    disableChickenBlood()
-
-                # learn (apply on confirm button)
-
-                # Skip training practice screen
-                skipPracticeScreen()
-                return True
-            else:
-                print('Training screen not exist!')
-                return False
-
-        def skipPracticeScreen():
-            pass
-
-        def enableChickenBlood():
-            pass
-
-        def disableChickenBlood():
-            pass
-
-        def refreshSkill():
-            pos = pyautogui.locateOnScreen('rsc\\normal-refresh.png')
-            if pos:
-                centerPos = pyautogui.center(pos)
-                pyautogui.click(centerPos)
-                # Any pop-up after refresh button clicked?
-                if 1:
-                    pass
-                return True
-            else:
-                print('Training screen not exist!')
-                return False
-
-        def isSkillExist(input_dict):
-            skill = getSkill()
-            skill in input_dict.values()
-            return skill
+                    print('Wait for training screen !')
 
 
 # Hold on when chrome remote is under accessing
