@@ -3,7 +3,7 @@
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
 # @Last Modified by:   eswizardry
-# @Last Modified time: 2016-02-18 23:39:53
+# @Last Modified time: 2016-02-20 20:30:28
 """
 KFH PyBot V 0.1
 """
@@ -58,19 +58,20 @@ class Enemy:
 SKILLS_DICT = {
     'green_critical_blood':   1523289932,
     'green_anticri_skip':    3480184075,
-    'green_dodge_skip':      3998951483,
+    'green_dodge':      3998951483,
     'green_hit_skip':      1897901501,
-    'green_meditate_blood':  1509820003,
+    'green_meditate':  1509820003,
     'green_speed_skip':      850053447,
     'green_inner_skip':    3799646525,
     'green_protect_skip':    1135142825,
     'green_ATK_skip':         4274791047,
     'green_HP_skip':         1021071819,
 
+    'blue_critical_blood':  2427144802,
     'blue_anticri_skip':    1436898714,
     'blue_meditate_blood':    2349639666,
     'blue_dodge':    3182278704,
-    'blue_hit':    4293102806,
+    'blue_hit_skip':    4293102806,
     'blue_inner':    2316652322,
     'blue_protect':    950597022,
     'blue_speed':    2737793844,
@@ -78,17 +79,27 @@ SKILLS_DICT = {
     'blue_HP':       2828546249,
 
     'violet_anticri_skip':  139314889,
-    'violet_hit_blood':    1281857028,
-    'violet_speed_blood':  2204472528,
+    'violet_dodge':    946822975,
+    'violet_hit_skip':    1281857028,
+    'violet_speed':  2204472528,
     'violet_inner_blood':  325248999,
-    'violet_protect_blood':  3031685518,
-    'violet_ATK_blood':    1005769789,
-    'vilolet_HP_blood':  2699097725,
+    'violet_protect':  3031685518,
+    'violet_ATK':    1005769789,
+    'vilolet_HP':  2699097725,
 
-    'special_prodjood_blood':  3678131005,
-    'special_reduce_damage_blood':  4293102806,
+    # แม่เฒ่า
+    'special_leela_blood':  684369648,
+    # ลี้ชิวจุ้ย
+    'special_increase_damage_blood':  2559285603,
+    # อู๋หย๋าจือ
+    'special_crumble_rate_blood':  325248999,
+    # อั้งชิกกง
     'special_crumble_level_blood':  2349639666,
-    'special_crumble_rate_blood':  325248999
+    # เอี้ยก้วย
+    'special_prodjood_blood':  3678131005,
+    # เหล่งนึ่ง
+    # 'special_reduce_damage_blood':  4293102806,
+
 }
 
 
@@ -1510,7 +1521,16 @@ class KFHPyBot(QMainWindow):
             keyPress = win32api.GetAsyncKeyState(win32con.VK_F1)
             im = screenGrab()
 
-            loc = pyautogui.locateOnScreen('rsc\\successful-rate-95.png')
+            loc = pyautogui.locateOnScreen('rsc\\successful-rate-xx.png')
+            # print('Successful rate < 100%!')
+            # if loc is None:
+            #     loc = pyautogui.locateOnScreen('rsc\\successful-rate-95.png')
+            #     print('Successful rate < 100%!')
+
+            # if loc is None:
+            #     loc = pyautogui.locateOnScreen('rsc\\successful-rate-85.png')
+            #     print('Successful rate < 85%!')
+
             if loc:
                 # Stop when trainig successful rate < 100%
                 print('Successful rate < 100%, stop training !!!')
