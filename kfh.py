@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: eswizardry
 # @Date:   2015-10-02 21:20:46
-# @Last Modified by:   eswizardry
-# @Last Modified time: 2016-02-20 20:30:28
+# @Last Modified by:   Bancha Rajainthong
+# @Last Modified time: 2016-11-11 20:52:12
 """
 KFH PyBot V 0.1
 """
@@ -52,40 +52,40 @@ LI_XUNHUAN    = 4
 class Enemy:
 
     """docstring for ClassName"""
-    x3 = [336996082, 3290520429, 1112749524, 2574921780, 1644016021]
-    x2 = [1801463166, 1985337230, 3680636007, 1470262155, 862735749]
+    x3 = [1104817058, 3439856729, 2995251515, 1023797234, 2828370573]
+    x2 = [895109948, 1236643701, 1394344544, 2680447795, 1809947768]
 
 SKILLS_DICT = {
-    'green_critical_blood':   1523289932,
-    'green_anticri_skip':    3480184075,
-    'green_dodge':      3998951483,
+    'green_critical_skip':   1523289932,
+    'green_anticri_skip':    3783338200,
+    'green_dodge_skip':      3998951483,
     'green_hit_skip':      1897901501,
-    'green_meditate':  1509820003,
-    'green_speed_skip':      850053447,
-    'green_inner_skip':    3799646525,
+    'green_meditate_skip':  1897901501,
+    'green_speed_skip':      2234121853,  #
+    'green_inner_skip':    990064379,  #
     'green_protect_skip':    1135142825,
-    'green_ATK_skip':         4274791047,
-    'green_HP_skip':         1021071819,
+    'green_ATK_skip':         3936627135,
+    'green_HP_skip':         2423802541,  #
 
     'blue_critical_blood':  2427144802,
-    'blue_anticri_skip':    1436898714,
+    'blue_anticri':    1436898714,
     'blue_meditate_blood':    2349639666,
     'blue_dodge':    3182278704,
-    'blue_hit_skip':    4293102806,
-    'blue_inner':    2316652322,
-    'blue_protect':    950597022,
-    'blue_speed':    2737793844,
+    'blue_hit_blood':    4293102806,
+    'blue_inner_skip':    2316652322,
+    'blue_protect_skip':    950597022,
+    'blue_speed_skip':    2737793844,
     'blue_ATK':      1005769789,
-    'blue_HP':       2828546249,
+    'blue_HP':       2815223053,
 
-    'violet_anticri_skip':  139314889,
-    'violet_dodge':    946822975,
-    'violet_hit_skip':    1281857028,
+    'violet_anticri_blood':  139314889,
+    'violet_dodge_blood':    946822975,
+    'violet_hit_blood':    1281857028,
     'violet_speed':  2204472528,
     'violet_inner_blood':  325248999,
     'violet_protect':  3031685518,
-    'violet_ATK':    1005769789,
-    'vilolet_HP':  2699097725,
+    'violet_ATK_blood':    1005769789,
+    'vilolet_HP_blood':  2699097725,
 
     # แม่เฒ่า
     'special_leela_blood':  684369648,
@@ -104,7 +104,7 @@ SKILLS_DICT = {
 
 
 def getKFHWindow(resize=False):
-    hwnd = win32gui.FindWindow(None, "Droid4X 0.9.0 Beta")
+    hwnd = win32gui.FindWindow(None, "Droid4X 0.10.4 Beta")
     if hwnd:
         if resize:
             win32gui.MoveWindow(hwnd, screen_start_x, screen_start_y, x_size, y_size, True)
@@ -247,23 +247,23 @@ class KFHPyBot(QMainWindow):
     getBuff_15_BTNPos = (376, 216)
     getBuff_3_BTNPos = (260, 216)
 
-    HP30   = (210, 75, 143)
-    PWR30  = (205, 68, 34)
-    PRT30  = (244, 204, 79)
-    INT30  = (29, 152, 153)
-    AGI30  = (18, 168, 51)
+    HP30   = (213, 78, 153)
+    PWR30  = (205, 70, 34)
+    PRT30  = (244, 204, 75)
+    INT30  = (26, 145, 149)
+    AGI30  = (21, 165, 55)
 
-    HP15   = (216, 92, 158)
-    PWR15  = (214, 88, 61)
-    PRT15  = (245, 204, 98)
-    INT15  = (54, 151, 153)
-    AGI15  = (49, 166, 74)
+    HP15   = (208, 86, 150)
+    PWR15  = (204, 80, 52)
+    PRT15  = (239, 199, 81)
+    INT15  = (40, 143, 146)
+    AGI15  = (38, 159, 65)
 
-    HP3    = (221, 85, 156)
-    PWR3   = (211, 76, 34)
-    PRT3   = (247, 209, 82)
-    INT3   = (27, 147, 153)
-    AGI3   = (21, 164, 53)
+    HP3    = (221, 101, 165)
+    PWR3   = (213, 93, 61)
+    PRT3   = (251, 211, 99)
+    INT3   = (50, 160, 163)
+    AGI3   = (46, 176, 75)
 
     def __init__(self):
         super().__init__()
@@ -842,9 +842,9 @@ class KFHPyBot(QMainWindow):
             im = screenGrab()
 
             # Continue battle screen
-            contBattlePos = (570, 213)
+            contBattlePos = (554, 235)
             contBattlePixel = im.getpixel(contBattlePos)
-            if contBattlePixel == (243, 218, 135):
+            if contBattlePixel == (213, 77, 38):
                 invisibleClick(contBattlePos)
 
             # Enter battle
@@ -856,13 +856,13 @@ class KFHPyBot(QMainWindow):
             # Join battle
             joinBattlePos = (550, 241)
             joinBattlePixel = im.getpixel(joinBattlePos)
-            if joinBattlePixel == (255, 211, 111):
+            if joinBattlePixel == (255, 211, 109):
                 invisibleClick(joinBattlePos)
 
             # Start battle
             startBattlePos = (590, 392)
-            normalBattlePixel = (254, 193, 95)
-            refreshGoldPixel = (47, 205, 240)
+            normalBattlePixel = (255, 220, 113)
+            refreshGoldPixel = (52, 221, 238)
             startBattlePixel = im.getpixel(startBattlePos)
             if startBattlePixel == normalBattlePixel:
                 battle_count += 1
@@ -876,7 +876,7 @@ class KFHPyBot(QMainWindow):
                 # Last shot
                 checkLastshotPos = (182, 116)
                 lastshotPixel = im.getpixel(checkLastshotPos)
-                if lastshotPixel == (6, 35, 50):
+                if lastshotPixel != (192, 75, 67):
                     battle_count += 1
                     gold_refreshCount += 1
                     # Fire the clicks to enter battle
@@ -888,7 +888,7 @@ class KFHPyBot(QMainWindow):
                     checkLessThan40PercentPos = (317, 125)
                     lessThan40PercentPixel = im.getpixel(checkLessThan40PercentPos)
                     if gold_usedTable[gold_refreshCount+1] <= self.gold_limit:
-                        if lessThan40PercentPixel == (15, 38, 51):
+                        if lessThan40PercentPixel == (168, 168, 168):
                             battle_count += 1
                             gold_refreshCount += 1
                             # Fire the clicks to enter battle
@@ -899,7 +899,7 @@ class KFHPyBot(QMainWindow):
             # Next
             nextBTNPos = (460, 412)
             pixel = im.getpixel(nextBTNPos)
-            if pixel == (27, 68, 68):
+            if pixel == (25, 75, 70):
                 invisibleClick(nextBTNPos)
 
             # Update stats
@@ -907,9 +907,9 @@ class KFHPyBot(QMainWindow):
             self.lbl_battleLegendary22.setText(str(gold_usedTable[gold_refreshCount]) + ' / ')
 
             # End
-            endCheckPos = (359, 64)
+            endCheckPos = (111, 230)
             pixel = im.getpixel(endCheckPos)
-            if pixel == (207, 207, 207):
+            if pixel == (68, 0, 119):
                 tm = datetime.datetime.now().time()
                 print('End : Legendary Battle... @ '+str(tm.hour)+':'+str(tm.minute)+':'+str(tm.second), end="\r")
                 break
@@ -964,9 +964,9 @@ class KFHPyBot(QMainWindow):
             im = screenGrab()
 
             # Ending dungeon battle if need gold refresh
-            if self.matched_n_clicked((390, 230), (255, 191, 0), im):
+            if self.matched_n_clicked((390, 230), (255, 203, 8), im):
                 break
-            elif self.matched_n_clicked((457, 237), (132, 81, 52), im):
+            elif self.matched_n_clicked((452, 238), (132, 78, 49), im):
                 break
 
             # Start battle if color is matched
@@ -977,7 +977,7 @@ class KFHPyBot(QMainWindow):
             self.matched_n_clicked((470, 256), (246, 186, 112), im)
             # Fighting Screen
             skipFightBTNPos = (310, 400)
-            if self.matched_n_clicked((365, 55), (240, 141, 32), im):
+            if self.matched_n_clicked((365, 55), (244, 147, 34), im):
                 invisibleClick(skipFightBTNPos)
 
             # Confirm to continue battle refresh Battle passport
@@ -987,7 +987,7 @@ class KFHPyBot(QMainWindow):
             self.matched_n_clicked((460, 412), (27, 68, 68), im)
 
             # Confirm for dungeon
-            self.matched_n_clicked((384, 351), (25, 92, 85), im)
+            self.matched_n_clicked((384, 351), (25, 88, 84), im)
 
             # Update stats
             self.lbl_mtClimbing12.setText(str(battle_count))
@@ -1054,19 +1054,19 @@ class KFHPyBot(QMainWindow):
             # Enter battle
             enterBattlePos = (47, 156)
             enterBattlePixel = im.getpixel(enterBattlePos)
-            if enterBattlePixel == (249, 171, 39):
+            if enterBattlePixel == (250, 175, 60):
                 invisibleClick(enterBattlePos)
 
             # Join battle
             joinBattlePos = (570, 352)
             joinBattlePixel = im.getpixel(joinBattlePos)
-            if joinBattlePixel == (217, 94, 64):
+            if joinBattlePixel == (213, 105, 74):
                 invisibleClick(joinBattlePos)
 
             # Start battle
             startBattlePos = (300, 386)
             startBattlePixel = im.getpixel(startBattlePos)
-            if startBattlePixel == (30, 152, 158):
+            if startBattlePixel == (37, 156, 161):
                 # Over limit > 15 battles/day
                 checkOverLimitPos = (270, 233)
                 pixel = im.getpixel(checkOverLimitPos)
@@ -1079,16 +1079,16 @@ class KFHPyBot(QMainWindow):
             fightScreenPos = (365, 55)
             skipFightBTNPos = (310, 400)
             pixel = im.getpixel(fightScreenPos)
-            if pixel == (240, 141, 32):
+            if pixel == (244, 147, 34):
                 invisibleClick(skipFightBTNPos)
 
             # Next
             nextBTNPos = (448, 370)
             pixel = im.getpixel(nextBTNPos)
-            if pixel == (25, 98, 86):
+            if pixel == (25, 102, 88):
                 winCheckPos = (296, 83)
                 pixel = im.getpixel(winCheckPos)
-                if pixel == (67, 31, 25):
+                if pixel == (74, 38, 31):
                     battle_win += 1
                     battle_round += 1
                     invisibleClick(nextBTNPos)
@@ -1104,7 +1104,7 @@ class KFHPyBot(QMainWindow):
             # Confirm to continue battle > 10 times
             contBTNPos = (448, 305)
             pixel = im.getpixel(contBTNPos)
-            if pixel == (29, 106, 97):
+            if pixel == (24, 104, 97):
                 invisibleClick(contBTNPos)
 
             time.sleep(.1)
@@ -1356,19 +1356,19 @@ class KFHPyBot(QMainWindow):
             # Got dead
             checkDeadPos = (168, 131)
             deadPixel = im.getpixel(checkDeadPos)
-            if deadPixel == (171, 171, 171):
+            if deadPixel == (92, 92, 92):
                 break
 
             # Check passport
             checkPassportPos = (580, 390)
             pixel = im.getpixel(checkPassportPos)
-            if pixel == (10, 35, 51):
+            if pixel == (8, 41, 48):
                 invisibleClick(checkPassportPos)
 
             # Next
             nextBTNPos = (442, 395)
             pixel = im.getpixel(nextBTNPos)
-            if pixel == (26, 105, 93):
+            if pixel == (20, 93, 89):
                 invisibleClick(nextBTNPos)
                 self.stageCurrent += 1
                 # Update Stage to GUI <QTextEdit>
@@ -1382,14 +1382,14 @@ class KFHPyBot(QMainWindow):
             # Get Reward
             getRewardBTNPos = (370, 360)
             pixel = im.getpixel(getRewardBTNPos)
-            if pixel == (27, 125, 110):
+            if pixel == (29, 114, 104):
                 invisibleClick(getRewardBTNPos)
 
             # Fighting Screen
             fightScreenPos = (365, 55)
             skipFightBTNPos = (380, 390)
             pixel = im.getpixel(fightScreenPos)
-            if pixel == (240, 141, 32):
+            if pixel == (244, 147, 34):
                 invisibleClick(skipFightBTNPos)
 
             # x3BTN    [213,330],(118, 39, 15)
@@ -1399,19 +1399,19 @@ class KFHPyBot(QMainWindow):
             if (self.stageCurrent <= self.stageLimit[0]) and self.isFightStage(ENEMY_X3):
                 x3BTNPos = (213, 330)
                 pixel = im.getpixel(x3BTNPos)
-                if pixel == (118, 39, 15):
+                if pixel == (163, 94, 78):
                     invisibleClick(x3BTNPos)
             # x2
             elif self.stageCurrent <= self.stageLimit[1] and self.isFightStage(ENEMY_X2):
                 x2BTNPos = (347, 330)
                 pixel = im.getpixel(x2BTNPos)
-                if pixel == (136, 42, 20):
+                if pixel == (167, 99, 85):
                     invisibleClick(x2BTNPos)
             # x1
             elif self.stageCurrent <= self.stageLimit[2]:
                 x1BTNPos = (478, 330)
                 pixel = im.getpixel(x1BTNPos)
-                if pixel == (157, 51, 32):
+                if pixel == (167, 97, 85):
                     invisibleClick(x1BTNPos)
             else:  # Reach limit stage
                 break
@@ -1447,7 +1447,7 @@ class KFHPyBot(QMainWindow):
         while process_end is False:
             im = screenGrab()
             # apply training button
-            if self.matched_n_clicked((560, 254), (255, 134, 8), im):
+            if self.matched_n_clicked((560, 254), (254, 138, 5), im):
                 print('Apply training')
 
             if use_blood:
@@ -1457,7 +1457,7 @@ class KFHPyBot(QMainWindow):
                 # Disabling chicken blood if enabled.
                 self.disableChickenBlood(im)
 
-            if self.matched_n_clicked((362, 316), (208, 200, 155), im):
+            if self.matched_n_clicked((362, 316), (31, 130, 114), im):
                 print('Apply on confirm button')
 
             if self.matched_n_clicked((352, 379), (64, 137, 132), im):
@@ -1485,16 +1485,16 @@ class KFHPyBot(QMainWindow):
         print('Continue training')
 
     def enableChickenBlood(self, im):
-        self.matched_n_clicked((476, 217), (218, 193, 119), im)
+        self.matched_n_clicked((479, 221), (217, 194, 119), im)
         # print('Enable Chicken bloood')
 
     def disableChickenBlood(self, im):
-        self.matched_n_clicked((476, 217), (33, 153, 43), im)
+        self.matched_n_clicked((479, 221), (33, 153, 42), im)
         # print('Disable Chicken bloood')
 
     def refreshSkill(self):
         im = screenGrab()
-        if self.matched_n_clicked((142, 222), (75, 102, 102), im):
+        if self.matched_n_clicked((142, 222), (132, 127, 87), im):
             print('Refresh skill')
             time.sleep(.1)
 
@@ -1537,7 +1537,7 @@ class KFHPyBot(QMainWindow):
                 return
             else:
                 # Training screen?
-                if self.matched_n_clicked((142, 222), (75, 102, 102), im, False):
+                if self.matched_n_clicked((142, 222), (132, 127, 87), im, False):
                     for cord in range(0, 3):
                         invisibleClick(skill_cords[cord])
                         if self.isSkillExist(SKILLS_DICT):

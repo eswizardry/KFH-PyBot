@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 # @Author: eswizardry
 # @Date:   2016-02-08 18:13:11
-# @Last Modified by:   mcsbanch
-# @Last Modified time: 2016-02-15 14:03:39
+# @Last Modified by:   Bancha Rajainthong
+# @Last Modified time: 2016-10-31 21:51:46
 """
 
 All coordinates assume a screen resolution of 1366x768, and Chrome
@@ -16,6 +16,7 @@ Play area =  x_pad+1, y_pad+1, 888, 718
 import os
 import sys
 import time
+import zlib
 
 import win32api
 import win32gui
@@ -26,10 +27,11 @@ from PyQt5.QtWidgets import *
 
 from numpy import *
 from PIL import ImageGrab
+from PIL import ImageOps
 
 # Globals
 # ------------------
-global_window_name = 'Calculator'
+global_window_name = 'Droid4X 0.10.4 Beta'
 VK_CODE = {'0': 0x30,
            '1': 0x31,
            '2': 0x32,
@@ -176,6 +178,49 @@ def snapEntireWindow():
     print('All screen capture is done.')
 
 
+def getKFHWindow(resize=False):
+    hwnd = win32gui.FindWindow(None, "Droid4X 0.10.4 Beta")
+    if hwnd:
+        if resize:
+            win32gui.MoveWindow(hwnd, screen_start_x, screen_start_y, x_size, y_size, True)
+        else:
+            xleft, ytop, xright, ybottom = win32gui.GetWindowRect(hwnd)
+            return xleft-1, ytop-1
+    else:
+        w = QWidget()
+        QMessageBox.critical(w, "Error", "No Droid4X 0.9.0 Beta instance is exist.")
+        exit()
+
+
+def imgGrab(x_start, y_start, x_end, y_end):
+    xleft, ytop = getKFHWindow()
+    box = (xleft+x_start, ytop+y_start, xleft+x_end, ytop+y_end)
+    im = ImageGrab.grab(box)
+    return im
+
+
+def getSkill():
+    im = ImageOps.grayscale(imgGrab(570, 90, 624, 144))
+    master = array(im.getcolors())
+    master = zlib.crc32(master)
+    print(master)
+    return master
+
+
+def getEnemy():
+    # Enemy X3 stage
+    # im = ImageOps.grayscale(imgGrab(167, 200, 266, 305))
+
+    # Enemy X2 stage
+    im = ImageOps.grayscale(imgGrab(301, 200, 400, 305))
+
+    enemy = array(im.getcolors())
+    enemy = zlib.crc32(enemy)
+    # enemy = enemy.sum()
+    print(enemy)
+    return enemy
+
+
 class AutoGuiTk(QWidget):
 
     def __init__(self):
@@ -201,6 +246,16 @@ class AutoGuiTk(QWidget):
         self.snap_all_btn.setToolTip('To <b>snap</b> entire window')
         self.snap_all_btn.resize(self.snap_all_btn.sizeHint())
 
+        self.get_skill_btn = QPushButton('Get Skill', self)
+        self.get_skill_btn.clicked.connect(getSkill)
+        self.get_skill_btn.setToolTip('To <b>get</b> skill')
+        self.get_skill_btn.resize(self.get_skill_btn.sizeHint())
+
+        self.get_enemy_btn = QPushButton('Get Enemy', self)
+        self.get_enemy_btn.clicked.connect(getEnemy)
+        self.get_enemy_btn.setToolTip('To <b>get</b> enemy')
+        self.get_enemy_btn.resize(self.get_enemy_btn.sizeHint())
+
         self.input_lbl = QLabel(self)
         self.input_lbl.setText('Enter Window name: ')
         self.input_qle = QLineEdit(self)
@@ -213,6 +268,8 @@ class AutoGuiTk(QWidget):
         self.h_box1.addWidget(self.mouse_track_btn)
         self.h_box1.addWidget(self.snap_target_btn)
         self.h_box1.addWidget(self.snap_all_btn)
+        self.h_box1.addWidget(self.get_skill_btn)
+        self.h_box1.addWidget(self.get_enemy_btn)
         self.h_box1.addStretch(1)
         self.h_box2.addWidget(self.input_lbl)
         self.h_box2.addWidget(self.input_qle)
